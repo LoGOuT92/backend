@@ -31,6 +31,13 @@ const userSchema = new Schema({
         minLength: [4, 'Hasło powinno posiadać min. 4 znaki']
         },
     image: {type: String},
+    isAdmin:{type: Boolean, default:false},
+    isModerator:{type: Boolean, default:false},
+    isbanned:{type: Boolean, default:false},
+    comments: [{ 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "post"
+   }]
 },{timestamps: true});
 userSchema.plugin(uniqueValidator, {message: 'Ten adres email jest juz zajety!.'});
 

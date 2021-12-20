@@ -1,22 +1,36 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const postSchema = new Schema({
-  header: {
-    type: String,
-    required: [true, "Naglowek nie moze byc pusty!"],
+const matchesSchema = new Schema({
+  HomeTeam: {
+    Name: { type: String },
+    Score: { type: Number },
+    Team: [],
+    Logo: { type: String },
+    Formation: { type: Array },
+    Color: { type: String },
+    Goal: [
+      {
+        Scorer: { type: String },
+        Minutes: { type: Number },
+      },
+    ],
   },
-  context: {
-    type: String,
-    required: [true, "Tresc nie moze byc pusta"],
+  AwayTeam: {
+    Name: { type: String },
+    Score: { type: Number },
+    Team: [],
+    Logo: { type: String },
+    Formation: { type: Array },
+    Color: { type: String },
+    Goal: [
+      {
+        Scorer: { type: String },
+        Minutes: { type: Number },
+      },
+    ],
   },
-  image: String,
-  author: {
-    type: mongoose.Types.ObjectId,
-    required: true,
-    ref: "User",
-  },
-  slug: String,
+  Date: { type: String },
   comments: [
     {
       user: {
@@ -65,7 +79,6 @@ const postSchema = new Schema({
     },
   ],
 });
+const Matches = mongoose.model("Matches", matchesSchema);
 
-const Post = mongoose.model("Posts", postSchema);
-
-module.exports = Post;
+module.exports = Matches;

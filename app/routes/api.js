@@ -11,6 +11,7 @@ const isModeratorMiddleware = require("../middleware/isModerator");
 const MatchControler = require("../controllers/matches-controler");
 const TrophyController = require("../controllers/trophy-controller");
 const TripController = require("../controllers/trip-controller");
+const LikesController = require("../controllers/likesComments-controller");
 
 const upload = require("../services/uploader");
 
@@ -29,8 +30,8 @@ router.get("/post/:slug", PostController.getSinglePost);
 router.put("/post/:_id", isModeratorMiddleware, PostController.editPost);
 router.delete("/post/:_id", PostController.deletePost);
 
-router.post("/likeCount/:_id", CommentsController.likesCount);
-router.post("/likeReplyCount/:_id", CommentsController.likeReplyCount);
+router.post("/likeCount/:_id", LikesController.likesCount);
+router.post("/likeReplyCount/:_id", LikesController.likeReplyCount);
 
 router.post("/createPlayer", PlayerControler.createPlayer);
 router.put("/editPlayer/:_id", PlayerControler.editPlayer);
@@ -74,7 +75,11 @@ router.put(
   CommentsController.deleteReply
 );
 
-router.post("/match/createMatch", MatchControler.addMatch);
+router.post(
+  "/match/createMatch",
+  upload.array("image", 2),
+  MatchControler.addMatch
+);
 router.get("/getThreeMatches", MatchControler.getThreeMatches);
 router.get("/getMatch/:_id", MatchControler.getMatch);
 router.put("/editMatch/:_id", MatchControler.editMatch);

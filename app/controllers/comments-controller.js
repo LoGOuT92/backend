@@ -1,10 +1,16 @@
 const Post = require("../db/models/post");
 const User = require("../db/models/user");
+const Matches = require("../db/models/Matches");
 
 class commentsController {
   async addComment(req, res) {
-    const post = await Post.findOne(req.params);
-
+    let post = {};
+    const { slug } = req.params;
+    if (req.headers.collections == "post") {
+      post = await Post.findOne({ slug: slug });
+    } else {
+      post = await Matches.findOne({ _id: slug });
+    }
     const comment = {
       user: req.body._id,
       content: req.body.content,
@@ -21,24 +27,42 @@ class commentsController {
     } catch (err) {
       return res.status(422).json({ message: err.message });
     }
-    const popPost = await Post.findOne(req.params)
-      .populate({
-        path: "comments.user",
-        model: User,
-      })
-      .populate({
-        path: "author",
-        model: User,
-      })
-      .populate({
-        path: "comments.repies.user",
-        model: User,
-      });
+    let popPost = {};
+    if (req.headers.collections == "post") {
+      popPost = await Post.findOne({ slug: slug })
+        .populate({
+          path: "comments.user",
+          model: User,
+        })
+        .populate({
+          path: "author",
+          model: User,
+        })
+        .populate({
+          path: "comments.repies.user",
+          model: User,
+        });
+    } else {
+      popPost = await Matches.findOne({ _id: slug })
+        .populate({
+          path: "comments.user",
+          model: User,
+        })
+        .populate({
+          path: "comments.repies.user",
+          model: User,
+        });
+    }
     res.status(201).json(popPost);
   }
   async addReply(req, res) {
     const postID = req.params;
-    const post = await Post.findOne({ _id: postID });
+    let post = {};
+    if (req.headers.collections == "post") {
+      post = await Post.findOne({ _id: postID });
+    } else {
+      post = await Matches.findOne({ _id: postID });
+    }
     const reply = {
       user: req.body._id,
       content: req.body.content,
@@ -56,19 +80,32 @@ class commentsController {
       console.log(err);
       return res.status(422).json({ message: err.message });
     }
-    const popPost = await Post.findOne({ _id: postID })
-      .populate({
-        path: "comments.user",
-        model: User,
-      })
-      .populate({
-        path: "author",
-        model: User,
-      })
-      .populate({
-        path: "comments.repies.user",
-        model: User,
-      });
+    let popPost = {};
+    if (req.headers.collections == "post") {
+      popPost = await Post.findOne({ _id: postID })
+        .populate({
+          path: "comments.user",
+          model: User,
+        })
+        .populate({
+          path: "author",
+          model: User,
+        })
+        .populate({
+          path: "comments.repies.user",
+          model: User,
+        });
+    } else {
+      popPost = await Matches.findOne({ _id: postID })
+        .populate({
+          path: "comments.user",
+          model: User,
+        })
+        .populate({
+          path: "comments.repies.user",
+          model: User,
+        });
+    }
 
     const popCom = await popPost.comments.find(
       (x) => x._id == req.body.commentID
@@ -76,57 +113,15 @@ class commentsController {
 
     res.status(201).json(popCom);
   }
-  async likeReplyCount(req, res) {
-    const postID = req.params;
-    const like = {
-      value: req.body.value,
-      user: req.body.user,
-    };
-    const post = await Post.findOne({ _id: postID })
-      .populate({
-        path: "comments.user",
-        model: User,
-      })
-      .populate({
-        path: "author",
-        model: User,
-      })
-      .populate({
-        path: "comments.repies.user",
-        model: User,
-      });
-    const comment = await post.comments.find(
-      (x) => x._id == req.body.commentID
-    );
-    const reply = await comment.repies.find((x) => x._id == req.body.repID);
-    const found = reply.likes.find((x) => x.user == req.body.user);
-    if (found && found.value === req.body.value) {
-      const tab = reply.likes.filter((x) => x.user != req.body.user);
-      reply.likes = [...tab];
-    }
-
-    if (found && found.value != req.body.value) {
-      const tab = reply.likes.filter((x) => x.user != req.body.user);
-      tab.push(like);
-      reply.likes = [...tab];
-    }
-    if (!found) {
-      reply.likes.push(like);
-    }
-    try {
-      await post.save();
-    } catch (err) {
-      console.log(err);
-    }
-    res.status(201).json(comment);
-  }
-
   async editComment(req, res) {
     const postID = req.params;
-    const post = await Post.findOne({ _id: postID });
-    const comment = await post.comments.find(
-      (x) => x._id == req.body.commentID
-    );
+    let post = {};
+    if (req.headers.collections == "post") {
+      post = await Post.findOne({ _id: postID });
+    } else {
+      post = await Matches.findOne({ _id: postID });
+    }
+    const comment = post.comments.find((x) => x._id == req.body.commentID);
     if (req.body.value) comment.content = req.body.value;
     try {
       await post.save();
@@ -135,12 +130,16 @@ class commentsController {
     }
     res.status(201).json(comment);
   }
+
   async editReply(req, res) {
     const postID = req.params;
-    const post = await Post.findOne({ _id: postID });
-    const commentsArr = await post.comments.find(
-      (x) => x._id == req.body.commentID
-    );
+    let post = {};
+    if (req.headers.collections == "post") {
+      post = await Post.findOne({ _id: postID });
+    } else {
+      post = await Matches.findOne({ _id: postID });
+    }
+    const commentsArr = post.comments.find((x) => x._id == req.body.commentID);
     const reply = commentsArr.repies.find((x) => x._id == req.body.repID);
     if (req.body.value) reply.content = req.body.value;
     try {
@@ -152,8 +151,33 @@ class commentsController {
   }
   async deleteComment(req, res) {
     const postID = req.params;
-    const post = await Post.findOne({ _id: postID });
-    const newCommentsArr = await post.comments.filter(
+    let post = {};
+    if (req.headers.collections == "post") {
+      post = await Post.findOne({ _id: postID })
+        .populate({
+          path: "comments.user",
+          model: User,
+        })
+        .populate({
+          path: "author",
+          model: User,
+        })
+        .populate({
+          path: "comments.repies.user",
+          model: User,
+        });
+    } else {
+      post = await Matches.findOne({ _id: postID })
+        .populate({
+          path: "comments.user",
+          model: User,
+        })
+        .populate({
+          path: "comments.repies.user",
+          model: User,
+        });
+    }
+    const newCommentsArr = post.comments.filter(
       (x) => x._id != req.body.commentID
     );
     post.comments = newCommentsArr;
@@ -166,11 +190,35 @@ class commentsController {
   }
   async deleteReply(req, res) {
     const postID = req.params;
-    const post = await Post.findOne({ _id: postID });
+    let post = {};
+    if (req.headers.collections == "post") {
+      post = await Post.findOne({ _id: postID })
+        .populate({
+          path: "comments.user",
+          model: User,
+        })
+        .populate({
+          path: "author",
+          model: User,
+        })
+        .populate({
+          path: "comments.repies.user",
+          model: User,
+        });
+    } else {
+      post = await Matches.findOne({ _id: postID })
+        .populate({
+          path: "comments.user",
+          model: User,
+        })
+        .populate({
+          path: "comments.repies.user",
+          model: User,
+        });
+    }
     const commentsArr = await post.comments.find(
       (x) => x._id == req.body.commentID
     );
-    // console.log(req.body.repID);
     const replys = commentsArr.repies.filter((x) => x._id != req.body.replyID);
     commentsArr.repies = replys;
     try {
@@ -179,48 +227,6 @@ class commentsController {
       console.log(err);
     }
     res.status(201).json(replys);
-  }
-  async likesCount(req, res) {
-    const postID = req.params;
-    const like = {
-      value: req.body.value,
-      user: req.body.user,
-    };
-    const post = await Post.findOne({ _id: postID })
-      .populate({
-        path: "comments.user",
-        model: User,
-      })
-      .populate({
-        path: "author",
-        model: User,
-      })
-      .populate({
-        path: "comments.repies.user",
-        model: User,
-      });
-    const comment = await post.comments.find(
-      (x) => x._id == req.body.commentID
-    );
-    const found = comment.likes.find((x) => x.user == req.body.user);
-    if (found && found.value === req.body.value) {
-      const tab = comment.likes.filter((x) => x.user != req.body.user);
-      comment.likes = [...tab];
-    }
-    if (found && found.value != req.body.value) {
-      const tab = comment.likes.filter((x) => x.user != req.body.user);
-      tab.push(like);
-      comment.likes = [...tab];
-    }
-    if (!found) {
-      comment.likes.push(like);
-    }
-    try {
-      await post.save();
-    } catch (err) {
-      console.log(err);
-    }
-    res.status(201).json(post);
   }
 }
 module.exports = new commentsController();

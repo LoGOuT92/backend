@@ -1,4 +1,5 @@
 const Matches = require("../db/models/Matches");
+const User = require("../db/models/user");
 
 class MatchController {
   async addMatch(req, res) {
@@ -6,13 +7,13 @@ class MatchController {
     const match = new Matches({
       HomeTeam: {
         Name: HomeTeam,
-        Logo: "",
+        Logo: req.files[0].filename,
         Score: 0,
         Team: [],
       },
       AwayTeam: {
         Name: AwayTeam,
-        Logo: "",
+        Logo: req.files[1].filename,
         Team: [],
         Score: 0,
       },
@@ -22,6 +23,7 @@ class MatchController {
     try {
       await match.save();
     } catch (err) {
+      console.log(err);
       return res.status(422).json({ message: err.message });
     }
     res.status(201).json(match);
@@ -33,7 +35,15 @@ class MatchController {
   }
   async getMatch(req, res) {
     const { _id } = req.params;
-    const match = await Matches.findOne({ _id: _id });
+    const match = await Matches.findOne({ _id: _id })
+      .populate({
+        path: "comments.user",
+        model: User,
+      })
+      .populate({
+        path: "comments.repies.user",
+        model: User,
+      });
     res.status(200).json({ match });
   }
   async editMatch(req, res) {

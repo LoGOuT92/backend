@@ -9,7 +9,6 @@ class PostController {
       context: req.body.context,
       author: req.body.author,
       image: req.file.filename,
-      // slug: req.body.header.replace(/\s+/g, "_").toLowerCase(),
       slug: Date.now(),
       comments: [],
     });
@@ -54,7 +53,6 @@ class PostController {
     const post = await Post.findOne(req.params);
     if (req.body.header) {
       post.header = req.body.header;
-      post.slug = req.body.header.replace(/\s+/g, "_").toLowerCase();
     }
     if (req.body.context) post.context = req.body.context;
     if (req.body.author) post.author = req.body.author;

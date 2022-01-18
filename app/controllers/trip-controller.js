@@ -15,6 +15,7 @@ class TripController {
     try {
       await trip.save();
     } catch (err) {
+      console.log(err);
       return res.status(422).json({ message: err.message });
     }
     res.status(201).json(trip);

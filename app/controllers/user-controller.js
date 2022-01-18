@@ -12,6 +12,7 @@ class UserControler {
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
+      image: "149071.png",
     });
     try {
       await user.save();
@@ -76,11 +77,14 @@ class UserControler {
   async editUser(req, res) {
     const { _id } = req.params;
     const userData = await User.findOne({ _id: _id });
-    if (req.body.username) userData.username = req.body.username;
-    if (req.body.email) userData.email = req.body.email;
-    if (req.body.password) userData.password = req.body.password;
-    userData.image = req.file.filename;
     console.log(req.body);
+    if (req.body.username && req.body.username != userData.username)
+      userData.username = req.body.username;
+    if (req.body.email && req.body.email != userData.email)
+      userData.email = req.body.email;
+    if (req.body.password) userData.password = req.body.password;
+    if (req.file) userData.image = req.file.filename;
+    console.log(req.body.password);
 
     // if (req.file.filename) {
     //   fs.unlinkSync("public/uploads/" + userData.image);

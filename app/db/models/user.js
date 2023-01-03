@@ -31,8 +31,8 @@ const userSchema = new Schema(
       minLength: [4, "Hasło powinno posiadać min. 4 znaki"],
     },
     image: { type: String },
-    isAdmin: { type: Boolean, default: true },
-    isModerator: { type: Boolean, default: true },
+    isAdmin: { type: Boolean, default: false },
+    isModerator: { type: Boolean, default: false },
     isbanned: { type: Boolean, default: false },
     comments: [
       {
